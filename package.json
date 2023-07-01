@@ -5,24 +5,19 @@
   "main": "dist/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx tsc & node dist/src/index.js",
-    "dev": "tsc -w & nodemon dist/src/index.js"
+    "start": "nodemon --exec ts-node src/index.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blopez-design/MIA-EXTRA-JUN-2023.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/blopez-design/MIA-EXTRA-JUN-2023/issues"
-  },
-  "homepage": "https://github.com/blopez-design/MIA-EXTRA-JUN-2023#readme",
   "devDependencies": {
     "@types/express": "^4.17.17",
+    "@types/ip": "^1.1.0",
+    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "ip": "^1.1.8",
+    "path": "^0.12.7"
   }
 }
