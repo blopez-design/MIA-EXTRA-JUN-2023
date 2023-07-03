@@ -6,7 +6,7 @@ export class BackupController {
 
     root = './archivos'
     backup = './backup/'
-    recovery = '/recovery'
+    recovery = '/recovery/'
   
     backupDecide(name: string, ip_from: string, port_from: string, ip_to: string = "", port_to: string = "", data: string = "", operacion: string = 'backup') {
         if (ip_to === "" && port_to === "") {
@@ -25,7 +25,7 @@ export class BackupController {
                 return {"status": true, "message": `${operacion} en ${ip_from}:${port_from} creado exitosamente`};
             } else {
                 if (fs.existsSync(this.backup+name)) {
-                    fs.copySync(this.backup + name, this.root + this.recovery);
+                    fs.copySync(this.backup + name, this.root + this.recovery + name);
                     return {"status": true, "message": `${operacion} en ${ip_from}:${port_from} creado exitosamente`};    
                 } else {
                     return {"status": false, "message": `El ${operacion} en ${ip_from}:${port_from} no existe`};
@@ -47,7 +47,7 @@ export class BackupController {
                 const resT = this.listadoJsonServer(ruta);
                 const json = {
                     ip_from: ip_from, port_from: port_from, ip_to: ip_to, port_to: port_to,
-                    name: name, data: JSON.parse(`{${resT}}`)}
+                    name: name, data: JSON.parse(`{${resT}}`), operacion}
                 const solicitud = {
                     url: `http://${ip_to}:${port_to}/backup`,
                     method: "POST",
@@ -66,7 +66,11 @@ export class BackupController {
             }
         } else {
             try {
-                this.recorrerJsonServer(this.backup+name, _data)
+                let ruta = this.backup+name
+                if (operacion == 'recovery') {
+                    ruta = this.root + this.recovery
+                }
+                this.recorrerJsonServer(ruta, _data)
                 return {"status": true, "message": `${operacion} en ${ip_to}:${port_to} creado exitosamente`};
             } catch (e) {
                 return {"status": false, "message": `Error al realizar ${operacion} en ${ip_to}:${port_to}. Razón: {e}`};
