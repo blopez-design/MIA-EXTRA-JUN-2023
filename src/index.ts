@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import ip from 'ip';
+import { BackupController } from './controllers/backup-controller';
 
 const root = './archivos'
 const port = 3000;
@@ -56,6 +57,14 @@ app.post('/delete_all', (req, res) => {
   } catch (error) {
     res.status(500).send({status: false, message:`Error al eliminar archivos del servidor ${ip.address}. Razón: ${error}`});
   }
+});
+
+
+app.post('/backup', (req, res) => {
+  let { name, ip_from, port_from, ip_to, port_to } = req.body;
+  const backup = new BackupController();
+  const respuesta = backup.backupDecide(name, ip_from, port_from, ip_to, port_to);
+  res.status(200).send(respuesta);      
 });
 
 app.listen(port, ()=> console.log('Start server on PORT ' + port));
