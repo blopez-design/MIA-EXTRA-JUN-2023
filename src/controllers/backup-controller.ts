@@ -6,51 +6,70 @@ export class BackupController {
 
     root = './archivos'
     backup = './backup/'
+    recovery = '/recovery'
   
-    backupDecide(name: string, ip_from: string, port_from: string, ip_to: string = "", port_to: string = "", data: string = "") {
+    backupDecide(name: string, ip_from: string, port_from: string, ip_to: string = "", port_to: string = "", data: string = "", operacion: string = 'backup') {
         if (ip_to === "" && port_to === "") {
-        return this.backupLocal(ip_from, port_from, name);
+        return this.backupLocal(ip_from, port_from, name, operacion);
         } else if (ip_to !== "" && port_to !== "") {
-        return this.backupCloud(ip_from, port_from, ip_to, port_to, name, data);
+        return this.backupCloud(ip_from, port_from, ip_to, port_to, name, data, operacion);
         } else {
         return {"status": false, "message": 'Error se desconoce donde necesita realizar el backup'};
         }
     }
 
-    backupLocal(ip_from: string, port_from: string, name: string) {
+    backupLocal(ip_from: string, port_from: string, name: string, operacion: string) {
         try {
-            fs.copySync(this.root, `./backup/${name}`);
-            return {"status": true, "message": `Backup en ${ip_from}:${port_from} creado exitosamente`};
+            if (operacion === 'backup') {
+                fs.copySync(this.root, `./backup/${name}`);
+                return {"status": true, "message": `${operacion} en ${ip_from}:${port_from} creado exitosamente`};
+            } else {
+                if (fs.existsSync(this.backup+name)) {
+                    fs.copySync(this.backup + name, this.root + this.recovery);
+                    return {"status": true, "message": `${operacion} en ${ip_from}:${port_from} creado exitosamente`};    
+                } else {
+                    return {"status": false, "message": `El ${operacion} en ${ip_from}:${port_from} no existe`};
+                }
+            }
         } catch (e) {
-            return {"status": false, "message": `Error al crear backup en ${ip_from}:${port_from}. Razón: ${e}`};
+            return {"status": false, "message": `Error al crear ${operacion} en ${ip_from}:${port_from}. Razón: ${e}`};
         }
     }
 
-    backupCloud(ip_from: string, port_from: string, ip_to: string, port_to: string, name: string, _data: string) {
+    backupCloud(ip_from: string, port_from: string, ip_to: string, port_to: string, name: string, _data: string, operacion: string) {
         if (_data === "") {
-            const resT = this.listadoJsonServer(this.root);
-            const json = {
-                ip_from: ip_from, port_from: port_from, ip_to: ip_to, port_to: port_to,
-                name: name, data: JSON.parse(`{${resT}}`)}
-            const solicitud = {
-                url: `http://${ip_to}:${port_to}/backup`,
-                method: "POST",
-                json: true,
-                body: json
+            let ruta = this.root;
+            if (operacion === 'recovery'){
+                ruta = this.backup + name;
             }
-            console.log('data: ', json);
-            request.post(solicitud, (err: any, res: any, body: any) =>{
-                if (err) { 
-                    return {"status": false, "message": `Error al conectarse con ${ip_to}:${port_to}. Razón: ${err}`};
+
+            if (fs.existsSync(ruta)){
+                const resT = this.listadoJsonServer(ruta);
+                const json = {
+                    ip_from: ip_from, port_from: port_from, ip_to: ip_to, port_to: port_to,
+                    name: name, data: JSON.parse(`{${resT}}`)}
+                const solicitud = {
+                    url: `http://${ip_to}:${port_to}/backup`,
+                    method: "POST",
+                    json: true,
+                    body: json
                 }
-            });
-            return {"status": true, "message": `Backup ${name} realizado en ${ip_to}:${port_to}`};
+                console.log('data: ', json);
+                request.post(solicitud, (err: any, res: any, body: any) =>{
+                    if (err) { 
+                        return {"status": false, "message": `Error al conectarse con ${ip_to}:${port_to}. Razón: ${err}`};
+                    }
+                });
+                return {"status": true, "message": `${operacion} ${name} realizado en ${ip_to}:${port_to}`};
+            } else {
+                return {"status": false, "message": `El ${operacion} en ${ip_from}:${port_from} no existe`}
+            }
         } else {
             try {
                 this.recorrerJsonServer(this.backup+name, _data)
-                return {"status": true, "message": `Backup en ${ip_to}:${port_to} creado exitosamente`};
+                return {"status": true, "message": `${operacion} en ${ip_to}:${port_to} creado exitosamente`};
             } catch (e) {
-                return {"status": false, "message": `Error al crear backup en ${ip_to}:${port_to}. Razón: {e}`};
+                return {"status": false, "message": `Error al realizar ${operacion} en ${ip_to}:${port_to}. Razón: {e}`};
             }
         }
         

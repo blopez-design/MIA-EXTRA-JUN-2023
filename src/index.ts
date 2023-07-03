@@ -60,10 +60,10 @@ app.post('/delete_all', (req, res) => {
 
 
 app.post('/backup', (req, res) => {
-  let { name, ip_from, port_from, ip_to, port_to, data } = req.body;
+  let { name, ip_from, port_from, ip_to, port_to, data, operacion } = req.body;
   const backup = new BackupController();
   console.log('data: ', data)
-  const respuesta = backup.backupDecide(name, ip_from, port_from, ip_to, port_to, data);
+  const respuesta = backup.backupDecide(name, ip_from, port_from, ip_to, port_to, data, operacion);
   res.status(200).send(respuesta);      
 });
 
