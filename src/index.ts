@@ -9,7 +9,6 @@ const port = 3000;
 const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
-app.listen(port, '0.0.0.0');
 
 app.post('/create', (req, res) => {
   let { _path, name, body } = req.body;
@@ -61,10 +60,11 @@ app.post('/delete_all', (req, res) => {
 
 
 app.post('/backup', (req, res) => {
-  let { name, ip_from, port_from, ip_to, port_to } = req.body;
+  let { name, ip_from, port_from, ip_to, port_to, data } = req.body;
   const backup = new BackupController();
-  const respuesta = backup.backupDecide(name, ip_from, port_from, ip_to, port_to);
+  console.log('data: ', data)
+  const respuesta = backup.backupDecide(name, ip_from, port_from, ip_to, port_to, data);
   res.status(200).send(respuesta);      
 });
 
-app.listen(port, ()=> console.log('Start server on PORT ' + port));
+app.listen(port,'0.0.0.0', ()=> console.log('Start server on PORT ' + port));
